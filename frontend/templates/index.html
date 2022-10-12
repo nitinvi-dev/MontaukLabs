@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Montauk Labs Back-End Assessment</title>
+
+        <!-- CSS -->
+        <link rel="stylesheet" href="css/bootstrap.min.css">
+        <link rel="stylesheet" href="css/style.css">
+
+        <!-- JS -->
+        <script src="js/jquery-3.3.1.slim.min.js"></script>
+        <script src="js/bootstrap.min.js"></script>
+        <script src="js/popper.min.js"></script>
+        <script src="js/handlebars.js"></script>
+    </head>
+    <body>
+        <nav class="nav-bar">
+            <div class="nav1">
+                <input class="form-control basicAutoComplete" type="text" id="search_employer" placeholder="Search Employers">
+                <a onclick="employers_search()"  href="javascript:void(0)" class="btnd btn-small">Go</a>
+            </div>
+            <h3>Employers</h3>
+        </nav>
+
+        {%raw%}
+            <script id="template-employers" type="text/x-handlebars-template">
+                <main>
+                    {{#each data}}
+                        <div class="employers">
+                            <div class="descp">
+                                <h2 class="plan-name">{{this.plan_name}} - {{this.plan_id}}</h2>
+                                <h3 class="plan-type">{{this.plan_type}}</h3>
+                            </div>
+                            <div class="descp">
+                                {{#each this.files}}
+                                    <p>{{this.description}} - {{this.location}}</p>
+                                {{/each}}
+                            </div>
+                        </div>
+                    {{/each}}
+                </main>
+            </script>
+        {%endraw%}
+
+        <script type="text/javascript">
+            var employers_api_call;
+
+            $(document).ready(function() {
+                var employers_data = {{ employers_data | tojson }}
+                $.each( employers_data.data, function( index, value ){
+                    employers_data.data[index] = JSON.parse(value);
+                });
+                templateScript = Handlebars.compile($('#template-employers').html());
+                $("#render-template").html(templateScript(employers_data));
+            });
+
+            function employers_search(){
+                let payload = {
+                    "q":$("#search_employer").text
+                }
+                make_api_call(payload);
+            }
+
+            function make_api_call(payload, first_search=true){
+                console.log('API call')
+                $.ajax({
+                    url: "/",
+                    type : 'POST',
+                    cache: false,
+                    data:{'data': JSON.stringify(payload)},
+                    success: function(response) {
+                        employers_api_call = response;
+                        $.each( employers_api_call.data, function( index, value ){
+                            employers_api_call.data[index] = JSON.parse(value);
+                        });
+                        templateScript = Handlebars.compile($('#template-employers').html());
+                        $("#render-template").html(templateScript(employers_api_call));
+                    },
+                    error : function (response){
+                        console.log('No Result Found')
+                    }
+                });
+            }
+
+            Handlebars.registerHelper('if_cond', function (v1, operator, v2, options) {
+                switch (operator) {
+                    case '==':
+                        return (v1 == v2) ? options.fn(this) : options.inverse(this);
+                    case '===':
+                        return (v1 === v2) ? options.fn(this) : options.inverse(this);
+                    case '!=':
+                        return (v1 != v2) ? options.fn(this) : options.inverse(this);
+                    case '!==':
+                        return (v1 !== v2) ? options.fn(this) : options.inverse(this);
+                    case '<':
+                        return (v1 < v2) ? options.fn(this) : options.inverse(this);
+                    case '<=':
+                        return (v1 <= v2) ? options.fn(this) : options.inverse(this);
+                    case '>':
+                        return (v1 > v2) ? options.fn(this) : options.inverse(this);
+                    case '>=':
+                        return (v1 >= v2) ? options.fn(this) : options.inverse(this);
+                    case '&&':
+                        return (v1 && v2) ? options.fn(this) : options.inverse(this);
+                    case '||':
+                        return (v1 || v2) ? options.fn(this) : options.inverse(this);
+                    default:
+                        return options.inverse(this);
+                }
+            });
+        </script>
+    </body>
+</html>

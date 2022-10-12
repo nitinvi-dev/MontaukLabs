@@ -1,0 +1,5 @@
+boto3==1.24.89
+faker
+Flask
+pynamodb
+python-dotenv

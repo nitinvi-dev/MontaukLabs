@@ -1,0 +1,61 @@
+useDotenv: true
+service: labs
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  stackTags:
+    env: development
+    created-date: 2022-04-26
+    team: python-dev
+    customer-impact: false
+    terraform: false
+
+resources:
+  Resources:
+    dynamodbtables:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${env:TABLE_NAME}-labs
+        AttributeDefinitions:
+          - AttributeName: pk
+            AttributeType: S
+          - AttributeName: sk
+            AttributeType: S
+          - AttributeName: plan_id
+            AttributeType: S
+          - AttributeName: plan_name
+            AttributeType: S
+          - AttributeName: plan_type
+            AttributeType: S
+        KeySchema:
+          - AttributeName: pk
+            KeyType: HASH
+          - AttributeName: sk
+            KeyType: RANGE
+        BillingMode: PAY_PER_REQUEST
+        TableClass: STANDARD
+        PointInTimeRecoverySpecification:
+          PointInTimeRecoveryEnabled: false
+        GlobalSecondaryIndexes:
+          - IndexName: "plan_id-index"
+            KeySchema:
+              -
+                AttributeName: "plan_id"
+                KeyType: "HASH"
+            Projection:
+              ProjectionType: ALL
+          - IndexName: "plan_name-index"
+            KeySchema:
+              -
+                AttributeName: "plan_name"
+                KeyType: "HASH"
+            Projection:
+              ProjectionType: ALL
+          - IndexName: "plan_type-index"
+            KeySchema:
+              -
+                AttributeName: "plan_type"
+                KeyType: "HASH"
+            Projection:
+              ProjectionType: ALL
